@@ -1,3 +1,4 @@
+from tqdm import tqdm
 
 
 def part_1():
@@ -53,14 +54,25 @@ def part_2():
 
     free_arr = [0] * len(diskmap)
 
-    for i in range(0, len(diskmap)):
-        prev = free_arr[i - 1] if i > 0 else 0
-        free_arr[i] = 0 if diskmap[i] is None else 1 + prev
+    def find_free_arr():
+        nonlocal free_arr
 
-    for i in reversed(file_map.keys()):
-        pass
+        free_arr = [0] * len(diskmap)
+        for idx in range(len(diskmap)):
+            prev = free_arr[idx - 1] if idx > 0 else 0
+            free_arr[idx] = 0 if diskmap[idx] is not None else 1 + prev
 
-    print(free_arr)
+    find_free_arr()
 
-if __name__ == "__main__":
-    part_2()
+    for file_id in tqdm(sorted(file_map.keys(), reverse=True)):
+        start_loc, length = file_map[file_id]
+
+        for i in range(start_loc):
+            if free_arr[i] >= length:
+                free_start = i - length + 1
+                diskmap[free_start:free_start+length] = [file_id]*length
+                diskmap[start_loc:start_loc+length] = [None]*length
+                find_free_arr()
+                break
+
+    print(sum([diskmap[i] * i for i in range(len(diskmap)) if diskmap[i] is not None]))
